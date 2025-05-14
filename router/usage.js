@@ -3,33 +3,39 @@ const express = require('express');
 const router = express.Router();
 const db = require("../config/dbconfig"); // your DB connection file (e.g., using mysql2 or pg)
 
-router.get('/usage/:id', async (req, res) => {  // Make the route handler async
-  const { id } = req.params;
-  console.log(`Fetching usage data for user ID: ${id}`); // Debugging line
-  
+// GET endpoint to fetch sustainability and daily usage for a user
+router.get('/usage/:id', async (req, res) => {
+  const { id: user_id } = req.params;
+  console.log(`Fetching usage data for user ID: ${user_id}`);
+
   try {
-    // Fetch from sustainability (with await)
-    const [sustainabilityRows] = await db.promise().query(
-      'SELECT carbon_value, created_at FROM sustainability WHERE user_id = ? ORDER BY created_at DESC',
-      [id]
-    );
+    // Fetch sustainability records for the user
+    const [sustainabilityData] = await db.query(`
+      SELECT travel_from, travel_to, mode, distance, carbon_value, impact, created_at 
+      FROM sustainability 
+      WHERE user_id = ? 
+      ORDER BY created_at DESC
+    `, [user_id]);
 
-    // Fetch from daily_usage (with await)
-    const [dailyUsageRows] = await db.promise().query(
-      'SELECT water_usage, electric_usage, created_at FROM daily_usage WHERE user_id = ? ORDER BY created_at DESC',
-      [id]
-    );
+    // Fetch daily usage records for the user
+    const [dailyUsageData] = await db.query(`
+      SELECT water_usage, electric_usage, created_at 
+      FROM daily_usage 
+      WHERE user_id = ? 
+      ORDER BY created_at DESC
+    `, [user_id]);
 
-    // Send the response with the fetched data
-    res.json({
-      sustainability: sustainabilityRows,
-      daily_usage: dailyUsageRows
+    // Respond with both datasets
+    res.status(200).json({
+      sustainability: sustainabilityData,
+      daily_usage: dailyUsageData
     });
 
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error('Error fetching usage data:', error.message);
     res.status(500).json({ error: 'Failed to fetch usage data' });
   }
 });
+
 
 module.exports = router;
