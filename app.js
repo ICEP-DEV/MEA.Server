@@ -8,7 +8,7 @@ app.use(cors());  // This allows all origins by default
 app.use('/api', usageRoutes);  // Prefix with /api
 app.use('/api', sustainabilityRoutes);  // Prefix with /api
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
