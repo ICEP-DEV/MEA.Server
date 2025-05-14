@@ -25,7 +25,7 @@ async function geocodeLocation(location) {
 router.post('/sustainability/calculate', async (req, res) => {
   const { user_id, from, to, mode } = req.body;
   const emission_factor = EMISSION_FACTORS[mode] || 0.2;
-
+console.log("Emission factor: ", emission_factor, "requests-------: ", req.body);
   try {
     const fromCoords = await geocodeLocation(from);
     const toCoords = await geocodeLocation(to);
@@ -39,7 +39,7 @@ router.post('/sustainability/calculate', async (req, res) => {
           [toCoords.lon, toCoords.lat],
         ],
       },
-      {
+      { 
         headers: {
           Authorization: ORS_API_KEY,
           'Content-Type': 'application/json',
