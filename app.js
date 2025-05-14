@@ -4,6 +4,8 @@ const usageRoutes = require('./router/usage');  // Correct path
 const sustainabilityRoutes = require('./router/sustainability');  // Correct path
 const cors = require('cors');
 app.use(cors());  // This allows all origins by default
+// Ensure this middleware is added before any route handling
+app.use(express.json());
 
 app.use('/api', usageRoutes);  // Prefix with /api
 app.use('/api', sustainabilityRoutes);  // Prefix with /api

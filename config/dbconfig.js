@@ -1,19 +1,15 @@
- // dbConfig.js
-const mysql = require('mysql2');
+// dbConfig.js
+const mysql = require('mysql2/promise');
 
-const db = mysql.createConnection({
+// Create a connection pool using the promise-based API
+const db = mysql.createPool({
   host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'mea_db', // replace with your actual database name
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Database connection failed:', err.message);
-    return;
-  }
-  console.log('Connected to MySQL database');
+  user: 'root',  // Ensure that 'root' is being used as the user
+  password: '',  // No password set
+  database: 'mea_db',  // Replace with your actual database name
+  waitForConnections: true,  // Ensure that the pool waits for connections
+  connectionLimit: 10,  // Adjust the pool size based on your app's needs
+  queueLimit: 0  // Unlimited connection queue
 });
 
 module.exports = db;
