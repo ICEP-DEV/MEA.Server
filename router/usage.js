@@ -74,5 +74,61 @@ router.get('/usageAll/all', async (req, res) => {
   }
 });
 
+// Import usage data (CSV upload)
+router.post('/usage/import', async (req, res) => {
+  console.log('HIT /usage/import API');
+
+  try {
+    const records = req.body.records;
+
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ error: 'No records provided' });
+    }
+
+    // 1. Get all user_ids from the records
+// Before querying users table
+const userIds = [...new Set(records.map(r => Number(r.user_id)))];
+
+    // 2. Query the users table for these user_ids
+    const [existingUsers] = await db.query(
+      'SELECT id FROM users WHERE id IN (?)',
+      [userIds]
+    );
+    const existingUserIds = existingUsers.map(u => u.id);
+
+    // 3. Find user_ids that do NOT exist
+    const missingUserIds = userIds.filter(id => !existingUserIds.includes(id));
+
+    if (missingUserIds.length > 0) {
+      return res.status(400).json({
+        error: 'Some user_id values do not exist in users table',
+        missingUserIds
+      });
+    }
+
+    // 4. If all user_ids exist, proceed to insert
+    const values = records.map(r => [
+      Number(r.user_id),
+      r.date,
+      r.water_usage,
+      r.electric_usage,
+      r.created_at
+    ]);
+
+    const [result] = await db.query(
+      `INSERT INTO daily_usage ( user_id, date, water_usage, electric_usage, created_at)
+       VALUES ?`,
+      [values]
+    );
+
+    res.status(200).json({
+      message: 'Usage data imported successfully',
+      inserted: result.affectedRows
+    });
+  } catch (error) {
+    console.error('❌ Error importing usage data:', error.message);
+    res.status(500).json({ error: 'Failed to import usage data' });
+  }
+});
 
 module.exports = router;
